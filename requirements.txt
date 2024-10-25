@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+python-dotenv
+pydantic
+pydantic-settings
+langchain
+langchain-groq
+pymupdf
+python-docx
+reportlab
+python-multipart
+requests
+langchain_community
