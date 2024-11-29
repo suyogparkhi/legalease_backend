@@ -3,10 +3,11 @@ import requests
 import logging
 from langchain_groq import ChatGroq
 from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
 from langchain_core.output_parsers import StrOutputParser
+from langchain.chains import create_extraction_chain
 from backend.config.settings import get_settings
 from backend.utils.pdf_utils import pdf_to_text
+from langchain_core.runnables import RunnablePassthrough
 
 router = APIRouter(prefix="/summarizer", tags=["summarizer"])
 settings = get_settings()
@@ -14,28 +15,37 @@ settings = get_settings()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Initialize the ChatGroq model
 model = ChatGroq(
     api_key=settings.API_KEY,
     model_name=settings.MODEL_NAME,
     temperature=settings.TEMPERATURE
 )
-parser = StrOutputParser()
 
 def generate_summary(text: str) -> str:
-    prompt = PromptTemplate(
-        input_variables=["text"],
-        template="Summarize the following text:\n\n{text}"
-    )
-
-    chain = LLMChain(llm=model, prompt=prompt, output_parser=parser)
-    result = chain.run(text=text)
-    return result
+    try:
+        # Create prompt template
+        prompt = PromptTemplate.from_template(
+            "Summarize the following text:\n\n{text}\n\nSummary:"
+        )
+        
+        # Create the chain using the new method
+        chain = prompt | model | StrOutputParser()
+        
+        # Invoke the chain with the text
+        result = chain.invoke({"text": text})
+        
+        return result
+    except Exception as e:
+        logger.error(f"Error generating summary: {str(e)}")
+        raise
 
 @router.post("/")
 async def summarize_pdf(request: Request):
     try:
+        # Parse request body
         data = await request.json()
-        file_url = data.get('docURL')
+        file_url = data.get('pdf_url')  # Changed from docURL to pdf_url to match frontend
         
         if not file_url:
             raise HTTPException(status_code=400, detail="File URL is required")
@@ -59,4 +69,4 @@ async def summarize_pdf(request: Request):
         raise HTTPException(status_code=400, detail=f"Error retrieving the PDF file: {str(http_err)}")
     except Exception as e:
         logger.error(f"Error processing request: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

@@ -11,3 +11,6 @@ reportlab
 python-multipart
 requests
 langchain_community
+faiss-cpu
+PyPDF2
+pypdf

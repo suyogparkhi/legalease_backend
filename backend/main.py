@@ -9,13 +9,13 @@ settings = get_settings()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition"]
 )
 
-# Include all routers
 app.include_router(chatbot.router)
 app.include_router(summarizer.router)
 app.include_router(doc_qna.router)
