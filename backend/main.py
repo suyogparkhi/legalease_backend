@@ -20,7 +20,3 @@ app.include_router(chatbot.router)
 app.include_router(summarizer.router)
 app.include_router(doc_qna.router)
 app.include_router(drafter.router)
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
